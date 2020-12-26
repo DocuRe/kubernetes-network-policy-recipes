@@ -16,8 +16,7 @@ choose particular namespaces.
 
 Run a web server in the `default` namespace:
 
-    kubectl run --generator=run-pod/v1 web --image=nginx \
-        --labels=app=web --expose --port 80
+    kubectl run web --image=nginx --labels=app=web --expose --port 80
 
 Now, suppose you have these three namespaces:
 
@@ -46,6 +45,7 @@ kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
 metadata:
   name: web-allow-prod
+  namespace: default
 spec:
   podSelector:
     matchLabels:
@@ -67,9 +67,10 @@ networkpolicy "web-allow-prod" created
 Query this web server from `dev` namespace, observe it is blocked:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --namespace=dev --rm -i -t --image=alpine -- sh
-If you don't see a command prompt, try pressing enter.
-/ # wget -qO- --timeout=2 http://web.default
+$ kubectl run test-$RANDOM --namespace=dev -it --rm --image=alpine -- wget -qO- --timeout=2 http://web.default
+```
+The output is;
+```
 wget: download timed out
 
 (traffic blocked)
@@ -78,9 +79,10 @@ wget: download timed out
 Query it from `prod` namespace, observe it is allowed:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --namespace=prod --rm -i -t --image=alpine -- sh
-If you don't see a command prompt, try pressing enter.
-/ # wget -qO- --timeout=2 http://web.default
+$ kubectl run test-$RANDOM --namespace=prod -it --rm --image=alpine -- wget -qO- --timeout=2 http://web.default
+```
+The output is;
+```
 <!DOCTYPE html>
 <html>
 <head>
@@ -89,8 +91,10 @@ If you don't see a command prompt, try pressing enter.
 ```
 
 ### Cleanup
-
-    kubectl delete networkpolicy web-allow-prod
-    kubectl delete pod web
-    kubectl delete service web
-    kubectl delete namespace {prod,dev}
+```sh
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete networkpolicy web-allow-prod $f0
+    kubectl delete pod web $f0
+    kubectl delete service web $f0
+    kubectl delete namespace {prod,dev} $f0
+```

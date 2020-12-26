@@ -44,5 +44,7 @@ networkpolicy "default-deny-all-egress" created
 ```
 
 ### Cleanup
-
-    kubectl delete networkpolicy default-deny-all-egress
+```sh
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete networkpolicy default-deny-all-egress $f0
+```

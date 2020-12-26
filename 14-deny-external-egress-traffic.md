@@ -59,13 +59,12 @@ networkpolicy "foo-deny-egress" created
 
 Run a web application named `web`:
 
-    kubectl run --generator=run-pod/v1 web --image=nginx --port 80 --expose \
-        --labels app=web
+    kubectl run web --image=nginx --port 80 --expose --labels app=web
 
 Run a pod with label `app=foo`. The policy will be enforced on this pod:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 --rm --restart=Never --image=alpine -i -t -l app=foo test -- ash
+$ kubectl run test-$RANDOM -it --rm --restart=Never --image=alpine -l app=foo -- ash
 
 / # wget -O- --timeout 1 http://web:80
 Connecting to web (10.59.245.232:80)
@@ -94,6 +93,7 @@ cannot establish a connection. Effectively, external traffic is blocked.
 ## Cleanup
 
 ```sh
-kubectl delete pod,service web
-kubectl delete networkpolicy foo-deny-external-egress
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete pod,service web $f0
+    kubectl delete networkpolicy foo-deny-external-egress $f0
 ```

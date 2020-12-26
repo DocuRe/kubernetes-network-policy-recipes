@@ -11,8 +11,7 @@ deploy it to make sure it is working correctly.
 
 Start a `web` application:
 
-    kubectl run --generator=run-pod/v1 web --image=nginx \
-        --labels=app=web --expose --port 80
+    kubectl run web --image=nginx --labels=app=web --expose --port 80
 
 Create a `other` namespace and label it:
 
@@ -51,9 +50,10 @@ networkpolicy.networking.k8s.io/web-allow-all-ns-monitoring created
 Query this web server from `default` namespace, *without* labelling the application `type=monitoring`, observe it is **blocked**:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --rm -i -t --image=alpine -- sh
-If you don't see a command prompt, try pressing enter.
-/ # wget -qO- --timeout=2 http://web.default
+$ kubectl run test-$RANDOM -it --rm --image=alpine -- wget -qO- --timeout=2 http://web.default
+```
+The output is;
+```
 wget: download timed out
 
 (traffic blocked)
@@ -62,9 +62,10 @@ wget: download timed out
 Query this web server from `default` namespace, labelling the application `type=monitoring`, observe it is **blocked**:
 
 ```sh
-kubectl run --generator=run-pod/v1 test-$RANDOM --labels type=monitoring --rm -i -t --image=alpine -- sh
-If you don't see a command prompt, try pressing enter.
-/ # wget -qO- --timeout=2 http://web.default
+kubectl run test-$RANDOM --labels type=monitoring -it --rm --image=alpine -- wget -qO- --timeout=2 http://web.default
+```
+The output is;
+```
 wget: download timed out
 
 (traffic blocked)
@@ -73,9 +74,10 @@ wget: download timed out
 Query this web server from `other` namespace, *without* labelling the application `type=monitoring`, observe it is **blocked**:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --namespace=other --rm -i -t --image=alpine -- sh
-If you don't see a command prompt, try pressing enter.
-/ # wget -qO- --timeout=2 http://web.default
+$ kubectl run test-$RANDOM --namespace=other -it --rm --image=alpine -- wget -qO- --timeout=2 http://web.default
+```
+The output is;
+```
 wget: download timed out
 
 (traffic blocked)
@@ -84,9 +86,10 @@ wget: download timed out
 Query this web server from `other` namespace, labelling the application `type=monitoring`, observe it is **allowed**:
 
 ```sh
-kubectl run --generator=run-pod/v1 test-$RANDOM --namespace=other --labels type=monitoring --rm -i -t --image=alpine -- sh
-If you don't see a command prompt, try pressing enter.
-/ # wget -qO- --timeout=2 http://web.default
+kubectl run test-$RANDOM --namespace=other --labels type=monitoring -it --rm --image=alpine -- wget -qO- --timeout=2 http://web.default
+```
+The output is;
+```
 <!DOCTYPE html>
 <html>
 <head>
@@ -95,8 +98,10 @@ If you don't see a command prompt, try pressing enter.
 ```
 
 ## Cleanup
-
-    kubectl delete networkpolicy web-allow-all-ns-monitoring
-    kubectl delete namespace other
-    kubectl delete pod web
-    kubectl delete service web
+```sh
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete networkpolicy web-allow-all-ns-monitoring $f0
+    kubectl delete namespace other $f0
+    kubectl delete pod web $f0
+    kubectl delete service web $f0
+```

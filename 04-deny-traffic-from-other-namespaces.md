@@ -22,8 +22,7 @@ Create a new namespace called `secondary` and start a web service:
 ```sh
 kubectl create namespace secondary
 
-kubectl run --generator=run-pod/v1 web --namespace secondary --image=nginx \
-    --labels=app=web --expose --port 80
+kubectl run web --namespace secondary --image=nginx  --labels=app=web --expose --port 80
 ```
 
 Save the following manifest to `deny-from-other-namespaces.yaml` and apply
@@ -61,8 +60,10 @@ Note a few things about this manifest:
 Query this web service from the `default` namespace:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --namespace=default --rm -i -t --image=alpine -- sh
-/ # wget -qO- --timeout=2 http://web.secondary
+$ kubectl run test-$RANDOM --namespace=default  -it --rm --image=alpine -- wget -qO- --timeout=2 http://web.secondary
+```
+The output is;
+```
 wget: download timed out
 ```
 
@@ -71,15 +72,19 @@ It blocks the traffic from `default` namespace!
 Any pod in `secondary` namespace should work fine:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --namespace=secondary --rm -i -t --image=alpine -- sh
-/ # wget -qO- --timeout=2 http://web.secondary
+$ kubectl run test-$RANDOM --namespace=secondary -it --rm --image=alpine -- wget -qO- --timeout=2 http://web.secondary
+```
+The output is;
+```
 <!DOCTYPE html>
 <html>
 ```
 
 ### Cleanup
-
-    kubectl delete pod web -n secondary
-    kubectl delete service web -n secondary
-    kubectl delete networkpolicy deny-from-other-namespaces -n secondary
-    kubectl delete namespace secondary
+```sh
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete pod web -n secondary $f0
+    kubectl delete service web -n secondary $f0
+    kubectl delete networkpolicy deny-from-other-namespaces -n secondary $f0
+    kubectl delete namespace secondary $f0
+```

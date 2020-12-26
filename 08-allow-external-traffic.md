@@ -15,8 +15,7 @@ or via a Load Balancer to access to the pod.
 Run a web server and expose it to the internet with a Load Balancer:
 
 ```sh
-kubectl run --generator=run-pod/v1 web --image=nginx \
-    --labels=app=web --port 80
+kubectl run web --image=nginx --labels=app=web --port 80
 
 kubectl expose pod/web --type=LoadBalancer
 ```
@@ -67,7 +66,9 @@ such as:
 ```
 
 ### Cleanup
-
-    kubectl delete pod web
-    kubectl delete service web
-    kubectl delete networkpolicy web-allow-external
+```sh
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete pod web $f0
+    kubectl delete service web $f0
+    kubectl delete networkpolicy web-allow-external $f0
+```

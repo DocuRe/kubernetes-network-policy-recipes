@@ -12,8 +12,7 @@ void, and allow all traffic to it from its namespace and other namespaces.
 
 Start a `web` application:
 
-    kubectl run --generator=run-pod/v1 web --image=nginx \
-        --labels=app=web --expose --port 80
+    kubectl run web --image=nginx --labels=app=web --expose --port 80
 
 Save the following manifest to `web-allow-all.yaml`:
 
@@ -56,8 +55,9 @@ that applying `web-allow-all` will make the `web-deny-all` void.
 
 ### Try it out
 
-    $ kubectl run --generator=run-pod/v1 test-$RANDOM --rm -i -t --image=alpine -- sh
-    / # wget -qO- --timeout=2 http://web
+    $ kubectl run test-$RANDOM -it --rm --image=alpine -- wget -qO- --timeout=2 http://web
+The output is;    
+
     <!DOCTYPE html>
     <html><head>
     ...
@@ -67,6 +67,7 @@ Traffic is allowed.
 ### Cleanup
 
 ```sh
-kubectl delete pod,service web
-kubectl delete networkpolicy web-allow-all web-deny-all
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete pod,service web $f0
+    kubectl delete networkpolicy web-allow-all web-deny-all $f0
 ```

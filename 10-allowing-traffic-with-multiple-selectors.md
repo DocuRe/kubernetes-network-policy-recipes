@@ -10,8 +10,7 @@ NetworkPolicy lets you define multiple pod selectors to allow traffic from.
 
 Run a Redis database on your cluster:
 
-    kubectl run --generator=run-pod/v1 db --image=redis:4 --port 6379 --expose \
-        --labels app=bookstore,role=db
+    kubectl run db --image=redis:4 --port 6379 --expose --labels app=bookstore,role=db
 
 Suppose you would like to share this Redis database between multiple
 microservices:
@@ -67,7 +66,7 @@ Note that:
 Run a pod that looks like the "catalog" microservice:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --labels=app=inventory,role=web --rm -i -t --image=alpine -- sh
+$ kubectl run test-$RANDOM --labels=app=inventory,role=web -it --rm --image=alpine -- sh
 
 / # nc -v -w 2 db 6379
 db (10.59.242.200:6379) open
@@ -78,7 +77,7 @@ db (10.59.242.200:6379) open
 Pods with labels not matching these microservices will not be able to connect:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --labels=app=other --rm -i -t --image=alpine -- sh
+$ kubectl run test-$RANDOM --labels=app=other -it --rm --image=alpine -- sh
 
 / # nc -v -w 2 db 6379
 nc: db (10.59.252.83:6379): Operation timed out
@@ -87,7 +86,9 @@ nc: db (10.59.252.83:6379): Operation timed out
 ```
 
 ### Cleanup
-
-    kubectl delete pod db
-    kubectl delete service db
-    kubectl delete networkpolicy redis-allow-services
+```sh
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete pod db $f0
+    kubectl delete service db $f0
+    kubectl delete networkpolicy redis-allow-services $f0
+```

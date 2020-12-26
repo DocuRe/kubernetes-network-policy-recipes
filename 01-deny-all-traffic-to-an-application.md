@@ -21,8 +21,10 @@ Run a nginx Pod with labels `app=web`  and expose it at port 80:
 
 Run a temporary Pod and make a request to `web` Service:
 
-    $ kubectl run --generator=run-pod/v1 --rm -i -t --image=alpine test-$RANDOM -- sh
-    / # wget -qO- http://web
+    $ kubectl run test-$RANDOM -it --rm --image=alpine -- wget -qO- http://web
+
+The output is;
+
     <!DOCTYPE html>
     <html>
     <head>
@@ -52,8 +54,9 @@ networkpolicy "web-deny-all" created
 
 Run a test container again, and try to query web:
 
-    $ kubectl run --generator=run-pod/v1 --rm -i -t --image=alpine test-$RANDOM -- sh
-    / # wget -qO- --timeout=2 http://web
+    $ kubectl run test-$RANDOM -it --rm --image=alpine -- wget -qO- --timeout=2 http://web
+The output is;
+    
     wget: download timed out
 
 Traffic dropped!
@@ -76,7 +79,8 @@ the traffic.
 ### Cleanup
 
 ```sh
-kubectl delete pod web
-kubectl delete service web
-kubectl delete networkpolicy web-deny-all
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete pod web $f0
+    kubectl delete service web $f0
+    kubectl delete networkpolicy web-deny-all $f0
 ```

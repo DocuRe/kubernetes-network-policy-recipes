@@ -17,7 +17,7 @@ A port may be either a numerical or named port on a pod.
 
 Run a web server deployment called `apiserver`:
 
-    kubectl run --generator=run-pod/v1 apiserver --image=ahmet/app-on-two-ports --labels=app=apiserver
+    kubectl run apiserver --image=ahmet/app-on-two-ports --labels=app=apiserver
 
 This application returns a hello response to requests on `http://:8000/`
 and a monitoring metrics response on `http://:5000/metrics`.
@@ -74,11 +74,18 @@ Run a pod with no custom labels, observe the traffic to ports
 5000 and 8000 are blocked:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --rm -i -t --image=alpine -- sh
-/ # wget -qO- --timeout=2 http://apiserver:8001
+$ kubectl run test-$RANDOM -it --rm --image=alpine -- wget -qO- --timeout=2 http://apiserver:8001
+```
+The output is;
+```
 wget: download timed out
+```
 
-/ # wget -qO- --timeout=2 http://apiserver:5001/metrics
+```sh
+$ kubectl run test-$RANDOM -it --rm --image=alpine -- wget -qO- --timeout=2 http://apiserver:5001/metrics
+```
+The output is;
+```
 wget: download timed out
 ```
 
@@ -87,18 +94,27 @@ port 5000 is allowed, but port 8000 is still not accessible:
 
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --labels=role=monitoring --rm -i -t --image=alpine -- sh
-/ # wget -qO- --timeout=2 http://apiserver:8001
+$ kubectl run test-$RANDOM --labels=role=monitoring -it --rm --image=alpine -- wget -qO- --timeout=2 http://apiserver:8001
+```
+The ouput is;
+```
 wget: download timed out
+```
 
-/ # wget -qO- --timeout=2 http://apiserver:5001/metrics
+```
+kubectl run test-$RANDOM --labels=role=monitoring -it --rm --image=alpine -- wget -qO- --timeout=2 http://apiserver:5001/metrics
+```
+The output is;
+```
 http.requests=3
 go.goroutines=5
 go.cpus=1
 ```
 
 ### Cleanup
-
-    kubectl delete pod apiserver
-    kubectl delete service apiserver
-    kubectl delete networkpolicy api-allow-5000
+```sh
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete pod apiserver $f0
+    kubectl delete service apiserver $f0
+    kubectl delete networkpolicy api-allow-5000 $f0
+```

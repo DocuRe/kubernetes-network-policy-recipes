@@ -20,9 +20,7 @@ Create a new namespace called `secondary` and start a web service:
 ```sh
 kubectl create namespace secondary
 
-kubectl run --generator=run-pod/v1 web --image=nginx \
-    --namespace secondary \
-    --labels=app=web --expose --port 80
+kubectl run web --image=nginx --namespace secondary --labels=app=web --expose --port 80
 ```
 
 Save the following manifest to `web-allow-all-namespaces.yaml` and apply
@@ -71,8 +69,10 @@ Note a few things about this NetworkPolicy manifest:
 Query this web service from the `default` namespace:
 
 ```sh
-$ kubectl run --generator=run-pod/v1 test-$RANDOM --namespace=default --rm -i -t --image=alpine -- sh
-/ # wget -qO- --timeout=2 http://web.secondary
+$ kubectl run test-$RANDOM --namespace=default -it --rm --image=alpine -- wget -qO- --timeout=2 http://web.secondary
+```
+The output is;
+```
 <!DOCTYPE html>
 <html>
 <head>
@@ -81,8 +81,10 @@ $ kubectl run --generator=run-pod/v1 test-$RANDOM --namespace=default --rm -i -t
 Similarly, it also works if you query it from any pod deployed to `secondary`.
 
 ### Cleanup
-
-    kubectl delete pod web -n secondary
-    kubectl delete service web -n secondary
-    kubectl delete networkpolicy web-allow-all-namespaces -n secondary
-    kubectl delete namespace secondary
+```sh
+    export f0='--force --grace-period=0' #when taking CKA/CKAD/CKS exams, using this option will speed up deletes.
+    kubectl delete pod web -n secondary $f0
+    kubectl delete service web -n secondary $f0
+    kubectl delete networkpolicy web-allow-all-namespaces -n secondary $f0
+    kubectl delete namespace secondary $f0
+```
